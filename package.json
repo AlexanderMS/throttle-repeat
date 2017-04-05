@@ -1,6 +1,6 @@
 {
   "name": "throttle-repeat",
-  "version": "0.9.0",
+  "version": "1.0.1",
   "description": "Execute a task at a limited rate (in milliseconds) while a condition holds. Reduce results",
   "main": "index.js",
   "directories": {

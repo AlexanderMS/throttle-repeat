@@ -7,7 +7,7 @@ const
 describe('throttle-repeat', function() {
   it('runs at least once', function() {
     return throttleRepeat({
-      rateMs: 10000,
+      waitTime: () => 10000,
       action: () => Promise.resolve(),
       whileCondition: () => false
     }).then(result => {
@@ -17,7 +17,7 @@ describe('throttle-repeat', function() {
 
   it('honors whileCondition (acc and lastResult)', function() {
     return throttleRepeat({
-      rateMs: 100,
+      waitTime: () => 100,
       action: () => Promise.resolve(1),
       whileCondition: (acc, lastResult) => (acc < 10 && lastResult > 0)
     }).then(result => {
@@ -27,7 +27,7 @@ describe('throttle-repeat', function() {
 
   it('starts next execution immediately if rate is lower than duration', function() {
     return throttleRepeat({
-      rateMs: 1,
+      waitTime: () => 1,
       action: () => new Promise(resolve => setTimeout(resolve, 10)),
       whileCondition: (acc) => (acc < 10)
     }).then(result => {
@@ -37,7 +37,26 @@ describe('throttle-repeat', function() {
 
   it('honors reducer (acc and lastResult) and initialValue', function() {
     return throttleRepeat({
-      rateMs: 100,
+      waitTime: () => 100,
+      action: () => Promise.resolve(2),
+      whileCondition: (acc) => (acc.total < 10),
+      initialValue: {
+        total: 0
+      },
+      reducer: (acc, lastResult) => {
+        acc.total += lastResult;
+        return acc;
+      }
+    }).then(result => {
+      assert.deepEqual(result, {
+        total: 10
+      });
+    })
+  });
+
+  it('supports variable wait time', function() {
+    return throttleRepeat({
+      waitTime: (acc, lastResult) => lastResult.total,
       action: () => Promise.resolve(2),
       whileCondition: (acc) => (acc.total < 10),
       initialValue: {
@@ -60,7 +79,7 @@ describe('throttle-repeat', function() {
     };
 
     return throttleRepeat({
-      rateMs: 100,
+      waitTime: () => 100,
       action: () => Promise.reject(exception),
       whileCondition: (acc) => (acc.total < 10),
       initialValue: {

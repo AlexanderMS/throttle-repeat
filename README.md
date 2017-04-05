@@ -7,10 +7,12 @@ const
   throttleRepeat = require('throttle-repeat');
 
 const output = yield throttleRepeat({
-  rateMs: 1000,         // limit `pollMessages` to at most once a second
+  waitTime: function(acc, lastResult) { // limit `pollMessages` to at most once a second
+    return 1000,
+  },
   action: pollMessages, // function to call (must be yield-able)
   whileCondition: function(acc, lastResult) {
-     return context.getRemainingTimeInMillis() > 2000; // keep calling while this condition holds 
+     return context.getRemainingTimeInMillis() > 2000; // keep calling while this condition holds
   },
   reducer: function(acc, lastResult) {          // lastResult returned by pollMessages
     acc.totalProcessed += lastResult.total;
@@ -23,7 +25,7 @@ const output = yield throttleRepeat({
   }
 });
 
-// Example output: 
+// Example output:
 // {
 //    totalProcessed: 12,
 //    totalSucceeded: 10

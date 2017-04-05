@@ -5,10 +5,10 @@ const
   assert = require('assert');
 
 function throttleRepeat(options) {
-  const rateMs = +options.rateMs;
+  const waitTime = options.waitTime;
   const whileCondition = options.whileCondition;
   const action = options.action;
-  assert(rateMs > 0, '"options.rateMs" must be a positive integer');
+  assert(typeof waitTime === 'function', '"options.waitTime" must be a function');
   assert(typeof whileCondition === 'function', '"options.whileCondition" must be a function');
   assert(typeof action === 'function', '"options.action" must be a yieldable function');
 
@@ -20,13 +20,14 @@ function throttleRepeat(options) {
     let lastResult = null;
     let nextStartMs = Date.now();
     do {
-      const nowMs = Date.now();
+      let nowMs = Date.now();
       if (nextStartMs > nowMs) {
         yield new Promise(resolve => setTimeout(resolve, nextStartMs - nowMs));
       }
-      nextStartMs = Date.now() + rateMs;
+      nowMs = Date.now();
       lastResult = yield action();
       acc = reducer(acc, lastResult);
+      nextStartMs = nowMs + waitTime(acc, lastResult);
     } while (whileCondition(acc, lastResult));
 
     return acc;
