@@ -7,8 +7,8 @@ const
   throttleRepeat = require('throttle-repeat');
 
 const output = yield throttleRepeat({
-  waitTime: function(acc, lastResult) { // limit `pollMessages` to at most once a second
-    return 1000,
+  waitTime: function(acc, lastResult, timeRun) {    // limit `pollMessages` to at most once a second
+    return 1000 - timeRun                           // negatives are OK, handled by the module
   },
   action: pollMessages, // function to call (must be yield-able)
   whileCondition: function(acc, lastResult) {

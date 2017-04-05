@@ -56,20 +56,18 @@ describe('throttle-repeat', function() {
 
   it('supports variable wait time', function() {
     return throttleRepeat({
-      waitTime: (acc, lastResult) => lastResult.total,
-      action: () => Promise.resolve(2),
-      whileCondition: (acc) => (acc.total < 10),
-      initialValue: {
-        total: 0
+      waitTime: (acc, lastResult, timeRun) => {
+        assert.isOk(timeRun >= 10);
+        return 0;
       },
-      reducer: (acc, lastResult) => {
-        acc.total += lastResult;
-        return acc;
+      action: () => new Promise(resolve => setTimeout(resolve, 10)),
+      whileCondition: (acc) => (acc < 10),
+      initialValue: 0,
+      reducer: (acc) => {
+        return acc + 1;
       }
     }).then(result => {
-      assert.deepEqual(result, {
-        total: 10
-      });
+      assert.deepEqual(result, 10);
     })
   });
 

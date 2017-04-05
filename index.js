@@ -18,16 +18,15 @@ function throttleRepeat(options) {
   return co(function*() {
     let acc = initialValue;
     let lastResult = null;
-    let nextStartMs = Date.now();
+    let calculatedWaitTime = 0;
     do {
-      let nowMs = Date.now();
-      if (nextStartMs > nowMs) {
-        yield new Promise(resolve => setTimeout(resolve, nextStartMs - nowMs));
+      if (calculatedWaitTime > 0) {
+        yield new Promise(resolve => setTimeout(resolve, calculatedWaitTime));
       }
-      nowMs = Date.now();
+      const startTime = Date.now();
       lastResult = yield action();
+      calculatedWaitTime = waitTime(acc, lastResult, (Date.now() - startTime));
       acc = reducer(acc, lastResult);
-      nextStartMs = nowMs + waitTime(acc, lastResult);
     } while (whileCondition(acc, lastResult));
 
     return acc;
