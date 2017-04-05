@@ -1,0 +1,42 @@
+{
+  "name": "throttle-repeat",
+  "version": "0.9.0",
+  "description": "Execute a task at a limited rate (in milliseconds) while a condition holds. Reduce results",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "istanbul cover node_modules/mocha/bin/_mocha --",
+    "posttest": "eslint .",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderMS/throttle-repeat.git"
+  },
+  "keywords": [
+    "throttle",
+    "rate",
+    "repeat",
+    "while",
+    "reduce",
+    "milliseconds",
+    "ms"
+  ],
+  "author": "Alexandr Murashkin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlexanderMS/throttle-repeat/issues"
+  },
+  "homepage": "https://github.com/AlexanderMS/throttle-repeat#readme",
+  "dependencies": {
+    "co": "4.6.0"
+  },
+  "devDependencies": {
+    "chai": "3.5.0",
+    "eslint": "3.12.0",
+    "istanbul": "0.4.5",
+    "mocha": "3.2.0"
+  }
+}
