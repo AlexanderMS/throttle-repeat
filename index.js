@@ -13,22 +13,23 @@ function throttleRepeat(options) {
   assert(typeof task === 'function', '"options.task" must be a yieldable function');
 
   const reducer = options.reducer || (acc => acc + 1);
-  const initialValue = options.initialValue || 0;
+  const initialValue = (options.initialValue === undefined) ? 0 : options.initialValue;
 
   return co(function*() {
     let acc = initialValue;
     let lastResult = null;
     let calculatedWaitTime = 0;
+    let index = 0;
     do {
       if (calculatedWaitTime > 0) {
         yield new Promise(resolve => setTimeout(resolve, calculatedWaitTime));
       }
       const startTime = Date.now();
-      lastResult = yield task();
+      lastResult = yield task(index);
       const timeElapsed = Date.now() - startTime;
       calculatedWaitTime = rate(lastResult) - timeElapsed;
       acc = reducer(acc, lastResult);
-    } while (!until(acc, lastResult));
+    } while (!until(++index, lastResult));
 
     return acc;
   });

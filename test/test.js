@@ -39,7 +39,7 @@ describe('throttle-repeat', function() {
     return throttleRepeat({
       rate: () => 100,
       task: () => Promise.resolve(2),
-      until: (acc) => (acc.total === 10),
+      until: (count) => (count === 10),
       initialValue: {
         total: 0
       },
@@ -49,7 +49,7 @@ describe('throttle-repeat', function() {
       }
     }).then(result => {
       assert.deepEqual(result, {
-        total: 10
+        total: 20
       });
     })
   });
@@ -61,7 +61,7 @@ describe('throttle-repeat', function() {
         return 10;
       },
       task: () => Promise.resolve(2),
-      until: (acc) => (acc.total === 10),
+      until: (count) => (count === 10),
       initialValue: {
         total: 0
       },
@@ -71,7 +71,7 @@ describe('throttle-repeat', function() {
       }
     }).then(result => {
       assert.deepEqual(result, {
-        total: 10
+        total: 20
       });
     })
   });
