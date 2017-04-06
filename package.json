@@ -1,7 +1,7 @@
 {
   "name": "throttle-repeat",
-  "version": "1.1.0",
-  "description": "Execute a task at a limited rate (in milliseconds) while a condition holds. Reduce results",
+  "version": "2.0.0",
+  "description": "Repeatedly executes a given task at a given maximum rate (in milliseconds) until a given condition is true",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -18,8 +18,10 @@
   "keywords": [
     "throttle",
     "rate",
+    "task",
+    "promise",
     "repeat",
-    "while",
+    "until",
     "reduce",
     "milliseconds",
     "ms"

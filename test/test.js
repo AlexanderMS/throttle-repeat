@@ -5,41 +5,41 @@ const
   throttleRepeat = require('../index.js');
 
 describe('throttle-repeat', function() {
-  it('runs at least once', function() {
+  it('runs once if until() is true', function() {
     return throttleRepeat({
-      waitTime: () => 10000,
-      action: () => Promise.resolve(),
-      whileCondition: () => false
+      rate: () => 100000,
+      task: () => Promise.resolve(),
+      until: () => true
     }).then(result => {
       assert.deepEqual(result, 1);
     })
   });
 
-  it('honors whileCondition (acc and lastResult)', function() {
+  it('honors until(count, lastResult)', function() {
     return throttleRepeat({
-      waitTime: () => 100,
-      action: () => Promise.resolve(1),
-      whileCondition: (acc, lastResult) => (acc < 10 && lastResult > 0)
+      rate: () => 100,
+      task: () => Promise.resolve(1),
+      until: (count, lastResult) => (count === 10 || lastResult === 0)
     }).then(result => {
       assert.deepEqual(result, 10);
     })
   });
 
-  it('starts next execution immediately if rate is lower than duration', function() {
+  it('next task executes immediately if last duration is greater than rate', function() {
     return throttleRepeat({
-      waitTime: () => 1,
-      action: () => new Promise(resolve => setTimeout(resolve, 10)),
-      whileCondition: (acc) => (acc < 10)
+      rate: () => 9,
+      task: () => new Promise(resolve => setTimeout(resolve, 10)),
+      until: (count) => (count === 10)
     }).then(result => {
       assert.deepEqual(result, 10);
     })
   });
 
-  it('honors reducer (acc and lastResult) and initialValue', function() {
+  it('honors reducer(acc, lastResult) and initialValue', function() {
     return throttleRepeat({
-      waitTime: () => 100,
-      action: () => Promise.resolve(2),
-      whileCondition: (acc) => (acc.total < 10),
+      rate: () => 100,
+      task: () => Promise.resolve(2),
+      until: (acc) => (acc.total === 10),
       initialValue: {
         total: 0
       },
@@ -54,32 +54,37 @@ describe('throttle-repeat', function() {
     })
   });
 
-  it('supports variable wait time', function() {
+  it('honors rate(lastResult)', function() {
     return throttleRepeat({
-      waitTime: (acc, lastResult, timeRun) => {
-        assert.isOk(timeRun >= 10);
-        return 0;
+      rate: (lastResult) => {
+        assert.deepEqual(lastResult, 2);
+        return 10;
       },
-      action: () => new Promise(resolve => setTimeout(resolve, 10)),
-      whileCondition: (acc) => (acc < 10),
-      initialValue: 0,
-      reducer: (acc) => {
-        return acc + 1;
+      task: () => Promise.resolve(2),
+      until: (acc) => (acc.total === 10),
+      initialValue: {
+        total: 0
+      },
+      reducer: (acc, lastResult) => {
+        acc.total += lastResult;
+        return acc;
       }
     }).then(result => {
-      assert.deepEqual(result, 10);
+      assert.deepEqual(result, {
+        total: 10
+      });
     })
   });
 
-  it('rejects if action rejects', function() {
+  it('rejects whenever task rejects', function() {
     const exception = {
       cause: 'unknown'
     };
 
     return throttleRepeat({
-      waitTime: () => 100,
-      action: () => Promise.reject(exception),
-      whileCondition: (acc) => (acc.total < 10),
+      rate: () => 100,
+      task: () => Promise.reject(exception),
+      until: (acc) => (acc.total === 10),
       initialValue: {
         total: 0
       },

@@ -5,14 +5,14 @@ const
   assert = require('assert');
 
 function throttleRepeat(options) {
-  const waitTime = options.waitTime;
-  const whileCondition = options.whileCondition;
-  const action = options.action;
-  assert(typeof waitTime === 'function', '"options.waitTime" must be a function');
-  assert(typeof whileCondition === 'function', '"options.whileCondition" must be a function');
-  assert(typeof action === 'function', '"options.action" must be a yieldable function');
+  const rate = options.rate;
+  const until = options.until;
+  const task = options.task;
+  assert(typeof rate === 'function', '"options.rate" must be a function');
+  assert(typeof until === 'function', '"options.until" must be a function');
+  assert(typeof task === 'function', '"options.task" must be a yieldable function');
 
-  const reducer = options.reducer || ((acc) => ++acc);
+  const reducer = options.reducer || (acc => acc + 1);
   const initialValue = options.initialValue || 0;
 
   return co(function*() {
@@ -24,10 +24,11 @@ function throttleRepeat(options) {
         yield new Promise(resolve => setTimeout(resolve, calculatedWaitTime));
       }
       const startTime = Date.now();
-      lastResult = yield action();
-      calculatedWaitTime = waitTime(acc, lastResult, (Date.now() - startTime));
+      lastResult = yield task();
+      const timeElapsed = Date.now() - startTime;
+      calculatedWaitTime = rate(lastResult) - timeElapsed;
       acc = reducer(acc, lastResult);
-    } while (whileCondition(acc, lastResult));
+    } while (!until(acc, lastResult));
 
     return acc;
   });
