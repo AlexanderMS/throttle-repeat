@@ -56,14 +56,14 @@ const throttleRepeat = require('throttle-repeat');
 
 return throttleRepeat({
   task: () => {
-    console.log('An async action running every second');
+    console.log('An async action running every second, five times');
     return Promise.resolve();
   },
   rate: () => 1000,
   until: (count) => (count === 5)
 })
 .then(result => console.log(result));
-// outputs 10
+// outputs 5
 ```
 
 ### With reducer
@@ -73,7 +73,7 @@ const throttleRepeat = require('throttle-repeat');
 
 return throttleRepeat({
   task: (index) => {
-    console.log('An async action running every second');
+    console.log('An async action running every second, five times');
     return Promise.resolve(index);
   },
   rate: () => 1000,
@@ -104,7 +104,8 @@ return throttleRepeat({
     totalProcessed: 0,
     totalSucceeded: 0
   }
-});
+})
+.then(result => console.log(result));
 // outputs {
 //   totalProcessed: 123
 //   totalSucceeded: 120
