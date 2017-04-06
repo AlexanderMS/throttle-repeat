@@ -1,6 +1,6 @@
 {
   "name": "throttle-repeat",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Repeatedly executes a given task at a given maximum rate (in milliseconds) until a given condition is true",
   "main": "index.js",
   "directories": {

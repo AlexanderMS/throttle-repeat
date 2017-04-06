@@ -4,9 +4,25 @@ Repeatedly executes a given `task` at a given maximum `rate` (in milliseconds) `
 
 Optionally, accepts `reducer` and `initialValue` to reduce results of each iteration. Allows for a non-constant rate depending on the most recent execution.
 
+## Usage
+```javascript
+const throttleRepeat = require('throttle-repeat');
+
+return throttleRepeat({
+  task: (index) => {
+    console.log(`An async action running every second: ${index}`);
+    return Promise.resolve(index);
+  },
+  rate: () => 1000,
+  until: (count, lastResult) => (count === 5 || lastResult > 10)
+})
+.then(result => console.log(result));
+// returns 5
+```
+
 ## API
 
-`throttleRepeat(params) : Promise<Any>`
+`throttleRepeat(params) -> Promise<Any>`
 
 ### Required parameters
 
@@ -18,11 +34,11 @@ Optionally, accepts `reducer` and `initialValue` to reduce results of each itera
 
   Defines the minimum number of milliseconds to wait since the *start* of the most recent call to `task`. Invoked after each iteration, with `lastResult` of each iteration returned by `task`. If `task` took more than the `rate` milliseconds, then next `task` is called right away. Next task is always executed sequentially, not earlier than until the most recent task yields.
 
-  *Example 1*. For a fixed wait time, e.g., two seconds, just provide a constant value: `waitTime: () => 2000`. This means each `task` will be called at most once in two seconds. If a `task` took more than two seconds, then the next `task` is called right after the most recent task yields.
+  *Example 1*. For a fixed wait time, e.g., two seconds, just provide a constant value: `rate: () => 2000`. This means each `task` will be called at most once in two seconds. If a `task` took more than two seconds, then the next `task` is called right after the most recent task yields.
 
   *Example 2*. For a variable wait time, e.g., to achieve on average at most 20 requests/s for a variable-load task:
     1. Make your task return the actual request count, so `lastResult` becomes `actualRequestCount`. (alternatively, it could be a field of the returned object).
-    2. provide a formula, e.g., `waitTime: (actualRequestCount) => 1000 * actualRequestCount / 20`
+    2. provide a formula, e.g., `rate: (actualRequestCount) => 1000 * actualRequestCount / 20`
 
   So, if `actualRequestCount` is 20, it will wait for one second since the start of the most recent task. If `actualRequestCount` is 10, it will wait only for half a second, so that, on average, the waiting time for each 20 items is one second. This is useful for tasks like polling a queue (with unknown number of messages) or a database (with unknown number of items) when throttling is important but always waiting for a constant amount of time is sub-optimal.
 
@@ -47,26 +63,9 @@ Optionally, accepts `reducer` and `initialValue` to reduce results of each itera
 
   2. If `reducer` and `initialValue` are specified, returns the most recent value of `accumulator`.
 
-## Examples
+## More examples
 
-### Simplest
-
-```javascript
-const throttleRepeat = require('throttle-repeat');
-
-return throttleRepeat({
-  task: () => {
-    console.log('An async action running every second, five times');
-    return Promise.resolve();
-  },
-  rate: () => 1000,
-  until: (count) => (count === 5)
-})
-.then(result => console.log(result));
-// outputs 5
-```
-
-### With reducer
+### Reducer
 
 ```javascript
 const throttleRepeat = require('throttle-repeat');
@@ -82,7 +81,7 @@ return throttleRepeat({
   initialValue: '0'
 })
 .then(result => console.log(result));
-// outputs 0,1,2,3,4,5
+// returns "0,1,2,3,4,5"
 ```
 
 ### Advanced (polling a queue)
@@ -106,7 +105,7 @@ return throttleRepeat({
   }
 })
 .then(result => console.log(result));
-// outputs {
+// returns {
 //   totalProcessed: 123
 //   totalSucceeded: 120
 // }
