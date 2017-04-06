@@ -96,17 +96,17 @@ return throttleRepeat({
   until: (count, lastResult) =>
     lastResult.total <= 10, // until queue is almost empty
   reducer: (accumulator, lastResult) => {
-    acc.totalMessagesProcessed += lastResult.total;
-    acc.totalMessagesSucceeded += lastResult.succeeded;
+    accumulator.totalProcessed += lastResult.total;
+    accumulator.totalSucceeded += lastResult.succeeded;
     return accumulator;
   },
   initialValue: {
-    totalMessagesProcessed: 0,
-    totalMessagesSucceeded: 0
+    totalProcessed: 0,
+    totalSucceeded: 0
   }
 });
 // outputs {
-//   totalMessagesProcessed: 123
-//   totalMessagesSucceeded: 120
+//   totalProcessed: 123
+//   totalSucceeded: 120
 // }
 ```
