@@ -41,8 +41,9 @@ return throttleRepeat({
   *Example 1*. For a fixed wait time, e.g., two seconds, just provide a constant value: `rate: () => 2000`. This means each `task` will be called at most once in two seconds. If a `task` took more than two seconds, then the next `task` is called right after the most recent task yields.
 
   *Example 2*. For a variable wait time, e.g., to achieve on average at most 20 requests/s for a variable-load task:
-    1. Make your task return the actual request count, so `lastResult` becomes `actualRequestCount`. (alternatively, it could be a field of the returned object).
-    2. provide a formula, e.g., `rate: (actualRequestCount) => 1000 * actualRequestCount / 20`
+
+    1. Make your task return the actual request count, so `lastResult` becomes `actualRequestCount`.    
+    2. Provide a formula, e.g., `rate: (actualRequestCount) => 1000 * actualRequestCount / 20`
 
   So, if `actualRequestCount` is 20, it will wait for one second since the start of the most recent task. If `actualRequestCount` is 10, it will wait only for half a second, so that, on average, the waiting time for each 20 items is one second. This is useful for tasks like polling a queue (with unknown number of messages) or a database (with unknown number of items) when throttling is important but always waiting for a constant amount of time is sub-optimal.
 
