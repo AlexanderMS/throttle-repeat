@@ -1,5 +1,9 @@
 # throttle-repeat
 
+[![npm version](https://badge.fury.io/js/throttle-repeat.svg)](https://badge.fury.io/js/throttle-repeat)
+[![CircleCI](https://circleci.com/gh/AlexanderMS/throttle-repeat.svg?style=shield)](https://circleci.com/gh/AlexanderMS/throttle-repeat)
+[![Coverage Status](https://coveralls.io/repos/github/AlexanderMS/throttle-repeat/badge.svg?branch=master)](https://coveralls.io/github/AlexanderMS/throttle-repeat?branch=master)
+
 Repeatedly executes a given `task` at a given maximum `rate` (in milliseconds) `until` a given condition is true.
 
 Optionally, accepts `reducer` and `initialValue` to reduce results of each iteration. Allows for a non-constant rate depending on the most recent execution.
