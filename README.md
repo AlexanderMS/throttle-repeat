@@ -6,7 +6,9 @@
 
 Repeatedly executes a given `task` at a given maximum `rate` (in milliseconds) `until` a given condition is true.
 
-Optionally, accepts `reducer` and `initialValue` to reduce results of each iteration. Allows for a non-constant rate depending on the most recent execution.
+Optionally, accepts `reducer` and `initialValue` to reduce results of each iteration. 
+
+Allows for variable rates (based on the most recent iteration).
 
 ## Usage
 ```javascript
@@ -18,7 +20,7 @@ return throttleRepeat({
     return Promise.resolve(index);
   },
   rate: () => 1000,
-  until: (count, lastResult) => (count === 5 || lastResult > 10)
+  until: (count, iterationResult) => (count === 5 || iterationResult > 10)
 })
 .then(result => console.log(result));
 // returns 5
@@ -32,35 +34,26 @@ return throttleRepeat({
 
   * **task**: `function(index) -> Promise<Any>`
 
-  Defines an action to perform on each iteration. Must be yield-able. `index` determines iteration number.
+  An action to perform on each iteration. Must be yield-able. Iteration `index` is passed to the `task` function.
 
-  * **rate**: `function(lastResult) -> Number (milliseconds)`
+  * **rate**: `function(iterationResult) -> Number (milliseconds)`
 
-  Defines the minimum number of milliseconds to wait since the *start* of the most recent call to `task`. Invoked after each iteration, with `lastResult` of each iteration returned by `task`. If `task` took more than the `rate` milliseconds, then next `task` is called right away. Next task is always executed sequentially, not earlier than until the most recent task yields.
+  The number of milliseconds between the *start* of the completed iteration and the *start* of the next iteration. After each iteration, the module invokes the `rate` function with `iterationResult` of the completed iteration and computes the waiting time before starting the next iteration according to the formula: `<time before next iteration> = <result of rate(...)> - <execution time of the completed iteration>`. If completed iteration took more than the `rate` milliseconds, the next iteration is started immediately upon completion of the iteration. 
 
-  *Example 1*. For a fixed wait time, e.g., two seconds, just provide a constant value: `rate: () => 2000`. This means each `task` will be called at most once in two seconds. If a `task` took more than two seconds, then the next `task` is called right after the most recent task yields.
+  *Example 1*. Fixed wait time. Just provide a constant value: `rate: () => 2000`. This means each `task` will be called every two seconds. If a `task` takes more than two seconds, the next iteration follows as soon as the most recent task yields, even if it is more than two seconds.
 
-  *Example 2*. For a variable wait time, e.g., to achieve on average at most 20 requests/s for a variable-load task:
+  *Example 2*. Variable wait time. A variable-load `task` could be instructed to return the actual request count, and `rate` could be defined as something like: `rate: (actualRequestCount) => 1000 * actualRequestCount / 20`. If 20 requests are sent, it waits for one second. If 10 requests are sent, the wait time is proportionally reduced to half a second. This is useful for tasks like polling a queue (with unknown number of messages) or a database (with unknown number of items) when throttling is important, but waiting for a constant amount of time is sub-optimal.
 
-    1. Make your task return the actual request count, so `lastResult` becomes `actualRequestCount`.    
-    2. Provide a formula, e.g., `rate: (actualRequestCount) => 1000 * actualRequestCount / 20`
+  * **until**: `function(count, iterationResult) -> Boolean`
 
-  So, if `actualRequestCount` is 20, it will wait for one second since the start of the most recent task. If `actualRequestCount` is 10, it will wait only for half a second, so that, on average, the waiting time for each 20 items is one second. This is useful for tasks like polling a queue (with unknown number of messages) or a database (with unknown number of items) when throttling is important but always waiting for a constant amount of time is sub-optimal.
-
-  * **until**: `function(count, lastResult) -> Boolean`
-
-  Exit condition. `task` is called until the condition evaluates as true. The condition is
-  first evaluated after the end of the first call. `count` is the number of `task` executions so far.
+  Exit condition. `task` is called until the condition evaluates as true. The condition is first evaluated after the end of the first call. `count` is the number of `task` executions so far, `iterationResult` is the result of the completed iteration.
 
 ### Optional parameters
 
-  * **reducer**: `function(accumulator, lastResult) -> Any`
-
-  Reduces results returned by `task` as if they were in an array (`reduce` function in ES6). `initialValue` is used as the initial value. Defaults to a simple increment (thus, shows the number of executions).
-
+  * **reducer**: `function(accumulator, iterationResult) -> Any`
   * **initialValue**: `Any`
 
-  The initial value `accumulator` is set to. Defaults to `0`.
+  Applies the `reducer` function against an `accumulator` and each `iterationResult` to reduce it to a single value. `initialValue` is the initial value of `accumulator`. `reducer` defaults to a simple increment, while `initialValue` defaults to `0`.
 
 ### Returns
 
@@ -82,7 +75,7 @@ return throttleRepeat({
   },
   rate: () => 1000,
   until: (count) => (count === 5),
-  reducer: (acc, lastResult) => `${acc},${lastResult + 1}`,
+  reducer: (acc, iterationResult) => `${acc},${iterationResult + 1}`,
   initialValue: '0'
 })
 .then(result => console.log(result));
@@ -96,12 +89,12 @@ const throttleRepeat = require('throttle-repeat');
 
 return throttleRepeat({
   task: pollMessages.bind(null, QUEUE_URL),           // our poller
-  rate: lastResult => 1000 * (lastResult.total / 20), // 20 msg/s
-  until: (count, lastResult) =>
-    lastResult.total <= 10, // until queue is almost empty
-  reducer: (accumulator, lastResult) => {
-    accumulator.totalProcessed += lastResult.total;
-    accumulator.totalSucceeded += lastResult.succeeded;
+  rate: iterationResult => 1000 * (iterationResult.total / 20), // 20 msg/s
+  until: (count, iterationResult) =>
+    iterationResult.total <= 10, // until queue is almost empty
+  reducer: (accumulator, iterationResult) => {
+    accumulator.totalProcessed += iterationResult.total;
+    accumulator.totalSucceeded += iterationResult.succeeded;
     return accumulator;
   },
   initialValue: {
